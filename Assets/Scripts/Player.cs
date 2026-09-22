@@ -12,11 +12,11 @@ public class Player : MonoBehaviour
     [SerializeField] private float jumpForce;
     [SerializeField] private Text scoreText;
     [SerializeField] private float speedCoefficient;
+    [SerializeField] private SceneTransitionDataScript sceneData;
 
     private int score;
     private Vector2 velocity;
     private bool isGrounded;
-    private float xMax;
     private Rigidbody2D rigidbody2d;
     private SpriteRenderer spriteRenderer;
     private Animator animator;
@@ -25,9 +25,22 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         rigidbody2d = GetComponent<Rigidbody2D>();
-        xMax = Camera.main.orthographicSize * Camera.main.aspect;
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
+    }
+
+    private void Start()
+    {
+        scoreText.text = sceneData.playerScore.ToString();
+        if (sceneData.wasTransition)
+        {
+            transform.position = sceneData.position;
+
+            if (sceneData.bonusDuration > 0)
+            {
+                StarPowerActive(sceneData.bonusDuration);
+            }
+        }   
     }
 
     private void Update()
@@ -44,10 +57,7 @@ public class Player : MonoBehaviour
         float inputAxis = Input.GetAxis("Horizontal");
         velocity = rigidbody2d.velocity;
 
-        if (transform.position.x < -xMax + 0.5f && inputAxis <= 0)
-            velocity.x = 0;
-        else
-            velocity.x = inputAxis * speed;       
+        velocity.x = inputAxis * speed;       
 
         rigidbody2d.velocity = velocity; 
 
@@ -94,8 +104,8 @@ public class Player : MonoBehaviour
 
     public void AddCoin(int count)
     {
-        score += count;
-        scoreText.text = score.ToString();
+        sceneData.playerScore += count;
+        scoreText.text = sceneData.playerScore.ToString();
     }
 
     private IEnumerator StarPowerAnimation(float duration)
@@ -103,15 +113,15 @@ public class Player : MonoBehaviour
         StarPower = true;
         speed *= speedCoefficient;
 
-        float elapsed = 0f;
-        while (elapsed < duration)
+        while (duration > 0)
         {
             if (Time.frameCount % 4 == 0)
             {
                 spriteRenderer.color = Random.ColorHSV(0f, 1f, 1f, 1f, 1f, 1f);
             }
             yield return null;
-            elapsed += Time.deltaTime;
+            duration -= Time.deltaTime;
+            sceneData.bonusDuration = duration;
         }
 
         speed /= speedCoefficient;

@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class StartGame : MonoBehaviour
 {
+    [SerializeField] private SceneTransitionDataScript sceneData;
     private void Start()
     {
     }
@@ -15,6 +16,7 @@ public class StartGame : MonoBehaviour
 
     public void StartTheGame()
     {
+        sceneData.Reset();
         SceneManager.LoadScene(1);
     }
 }
